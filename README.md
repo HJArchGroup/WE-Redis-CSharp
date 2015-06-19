@@ -17,6 +17,6 @@ The program tries to connected `127.0.0.1:6379` by default, and you can change i
 1. Use namespace 'ServiceStack.Cluster'.
 2. Create an instance for class 'RedisClusterClient'.
 
-Enjoys!
+Enjoy!
 
 
