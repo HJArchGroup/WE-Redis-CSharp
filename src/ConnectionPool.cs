@@ -12,13 +12,24 @@ namespace ServiceStack.Cluster
 
         private HashSet<RedisNativeClient> disconnected;
 
-        public ConnectionPool(string ip, ushort port)
+        private string password;
+
+        public ConnectionPool(string ip, ushort port, string password)
         {
             this.clients = new Dictionary<ulong, RedisNativeClient>();
             this.nodes = new Dictionary<string, ClusterNode>();
             this.slots = new RedisNativeClient[Global.HashSlotSize];
 
             this.disconnected = new HashSet<RedisNativeClient>();
+
+            if ((password != null) && (password.Length > 0))
+            {
+                this.password = password;
+            }
+            else
+            {
+                this.password = null;
+            }
 
             this.Update(this.GetRedisClient(ip, port), ip);
         }
@@ -74,7 +85,19 @@ namespace ServiceStack.Cluster
             }
             catch (RedisException e)
             {
-                Global.Error(ip, e.Message);
+                if (e.Message.Contains("cluster support disabled"))
+                {
+                    Global.Info(ip, "Switch to non-cluster mode");
+                    for (int i = 0; i < Global.HashSlotSize; i++)
+                    {
+                        this.slots[i] = client;
+                    }
+                }
+                else
+                {
+                    Global.Error(ip, e.Message);
+                }
+                return;
             }
             
             if (reply != null)
@@ -286,6 +309,11 @@ namespace ServiceStack.Cluster
             {
                 client = new RedisNativeClient(ip, port);
                 this.clients.Add(key, client);
+
+                if ((this.password != null) && (this.password.Length > 0))
+                {
+                    client.RawCommand("AUTH", this.password);
+                }
             }
             return client;
         }

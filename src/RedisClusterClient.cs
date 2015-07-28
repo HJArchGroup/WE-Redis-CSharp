@@ -8,9 +8,9 @@ namespace ServiceStack.Cluster
     {
         private ConnectionPool pool = null;
 
-        public RedisClusterClient(string ip, ushort port)
+        public RedisClusterClient(string ip, ushort port, string password)
         {
-            this.pool = new ConnectionPool(ip, port);
+            this.pool = new ConnectionPool(ip, port, password);
         }
 
         public void Close()
